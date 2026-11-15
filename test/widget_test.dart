@@ -1,30 +1,38 @@
-// This is a basic Flutter widget test.
-//
-// To perform an interaction with a widget in your test, use the WidgetTester
-// utility in the flutter_test package. For example, you can send tap and scroll
-// gestures. You can also use WidgetTester to find child widgets in the widget
-// tree, read text, and verify that the values of widget properties are correct.
-
 import 'package:flutter_test/flutter_test.dart';
-import 'package:material_ui/material_ui.dart';
 
-import 'package:evolv/main.dart';
+import 'package:evolv/utils/formatters.dart';
+import 'package:evolv/utils/validators.dart';
 
 void main() {
-  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
-    // Build our app and trigger a frame.
-    await tester.pumpWidget(const MyApp());
+  group('formatters', () {
+    test('parseDecimal aceita vírgula e ponto', () {
+      expect(parseDecimal('70,5'), 70.5);
+      expect(parseDecimal('70.5'), 70.5);
+      expect(parseDecimal('abc'), isNull);
+    });
 
-    // Verify that our counter starts at 0.
-    expect(find.text('0'), findsOneWidget);
-    expect(find.text('1'), findsNothing);
+    test('fmtNum remove zeros desnecessários e usa vírgula', () {
+      expect(fmtNum(70.0), '70');
+      expect(fmtNum(70.5), '70,5');
+      expect(fmtNum(2000, decimals: 0), '2000');
+    });
 
-    // Tap the '+' icon and trigger a frame.
-    await tester.tap(find.byIcon(Icons.add));
-    await tester.pump();
+    test('dateKey usa o formato yyyy-MM-dd', () {
+      expect(dateKey(DateTime(2026, 11, 5)), '2026-11-05');
+    });
+  });
 
-    // Verify that our counter has incremented.
-    expect(find.text('0'), findsNothing);
-    expect(find.text('1'), findsOneWidget);
+  group('validators', () {
+    test('campo vazio é inválido', () {
+      expect(validateRequired('  '), isNotNull);
+      expect(validateRequired('Maria'), isNull);
+    });
+
+    test('número fora do intervalo é inválido', () {
+      expect(validateNumber('0', integer: true), isNotNull);
+      expect(validateNumber('2000', integer: true, max: 10000), isNull);
+      expect(validateNumber('1,5', integer: true), isNotNull);
+      expect(validateNumber('72,5', integer: false, min: 20, max: 400), isNull);
+    });
   });
 }
